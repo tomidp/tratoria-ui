@@ -9,7 +9,7 @@ app.controller( 'tratoriaCtrl', function($scope, $http) {
 	}
 	
 	$scope.getData = function () {
-		$http.get("http://localhost:8080/api/tratoria/findAll").then(
+		$http.get("/findAll").then(
 					function(response) {
 						$scope.informations = response.data;
 					} 

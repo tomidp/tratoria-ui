@@ -16,12 +16,23 @@
 
 package com.dp.tratoria.jsp;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.squareup.okhttp.HttpUrl;
+import com.squareup.okhttp.OkHttpClient;
+import com.squareup.okhttp.Request;
+import com.squareup.okhttp.Response;
+
 
 @Controller
 public class WelcomeController {
@@ -35,5 +46,18 @@ public class WelcomeController {
 		model.put("message", this.message);
 		return "welcome";
 	}
+	
+    @RequestMapping(value = "/findAll", method = RequestMethod.GET)
+    @ResponseBody
+    public List<Customer> findAll() throws Exception {
+       OkHttpClient client = new OkHttpClient();
+       HttpUrl route = HttpUrl.parse("http://localhost:8080/api/tratoria/findAll");
+       Request request = new Request.Builder().url(route).build();
+       Response response = client.newCall(request).execute();
+       ObjectMapper mapper = new ObjectMapper();
+       List<Customer> obj = new ArrayList<Customer>();
+       obj = mapper.readValue(response.body().string(), List.class);
+       return obj;
+    }
 
 }
