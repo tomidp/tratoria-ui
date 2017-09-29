@@ -42,8 +42,6 @@ public class WelcomeController {
 
 	@RequestMapping("/")
 	public String welcome(Map<String, Object> model) {
-		model.put("time", new Date());
-		model.put("message", this.message);
 		return "welcome";
 	}
 	
@@ -54,9 +52,11 @@ public class WelcomeController {
        HttpUrl route = HttpUrl.parse("http://localhost:8080/api/tratoria/findAll");
        Request request = new Request.Builder().url(route).build();
        Response response = client.newCall(request).execute();
+       
        ObjectMapper mapper = new ObjectMapper();
        List<Customer> obj = new ArrayList<Customer>();
        obj = mapper.readValue(response.body().string(), List.class);
+       
        return obj;
     }
 
