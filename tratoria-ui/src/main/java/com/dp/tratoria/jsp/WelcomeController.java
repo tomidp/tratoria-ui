@@ -16,26 +16,32 @@
 
 package com.dp.tratoria.jsp;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.ResponseBody;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.squareup.okhttp.HttpUrl;
 import com.squareup.okhttp.OkHttpClient;
 import com.squareup.okhttp.Request;
 import com.squareup.okhttp.Response;
+import okio.BufferedSink;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.MediaType;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 
 @Controller
 public class WelcomeController {
+
+    private static final Logger log = LoggerFactory.getLogger(WelcomeController.class);
 
 	@Value("${application.message:Hello World}")
 	private String message = "Hello World";
@@ -45,19 +51,38 @@ public class WelcomeController {
 		return "welcome";
 	}
 	
-    @RequestMapping(value = "/findAll", method = RequestMethod.GET)
+    @RequestMapping(value = "/findAll", method = RequestMethod.GET, produces = {MediaType.APPLICATION_JSON_VALUE})
     @ResponseBody
     public List<Customer> findAll() throws Exception {
        OkHttpClient client = new OkHttpClient();
-       HttpUrl route = HttpUrl.parse("http://localhost:8080/api/tratoria/findAll");
+       HttpUrl route = HttpUrl.parse("http://localhost:8080/api/tratoria/customers");
        Request request = new Request.Builder().url(route).build();
        Response response = client.newCall(request).execute();
        
        ObjectMapper mapper = new ObjectMapper();
        List<Customer> obj = new ArrayList<Customer>();
+       log.info("Find All UI");
+       log.info(response.body().toString());
        obj = mapper.readValue(response.body().string(), List.class);
        
        return obj;
     }
 
+    @RequestMapping(value = "/submit", method = RequestMethod.POST, produces = {MediaType.APPLICATION_JSON_VALUE})
+    @ResponseBody
+    public Customer submit(@RequestBody Customer customer) throws Exception {
+        OkHttpClient client = new OkHttpClient();
+        HttpUrl route = HttpUrl.parse("http://localhost:8080/api/tratoria/customers");
+        com.squareup.okhttp.MediaType mediaType = com.squareup.okhttp.MediaType.parse("application/json; charset=utf-8");
+
+        ObjectMapper mapper = new ObjectMapper();
+        com.squareup.okhttp.RequestBody body = com.squareup.okhttp.RequestBody.create(mediaType, mapper.writeValueAsString(customer));
+        Request request = new Request.Builder().url(route).post(body).build();
+        Response response = client.newCall(request).execute();
+
+        Customer result = new Customer();
+        ObjectMapper mapper2 = new ObjectMapper();
+        result = mapper2.readValue(response.body().string(), Customer.class);
+        return result;
+    }
 }
